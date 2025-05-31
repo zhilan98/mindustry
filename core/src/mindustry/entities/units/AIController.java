@@ -27,9 +27,23 @@ public class AIController implements UnitController{
     /** main target that is being faced */
     protected @Nullable Teamc target;
     protected @Nullable Teamc bomberTarget;
+    public enum DroneState {
+        Idle,
+        Mepairing,
+        Waiting,
+        Returning
+    }
 
     {
         resetTimers();
+    }
+    private DroneState currentState = DroneState.Idle;
+
+    private void changeState(DroneState newState){
+        if(currentState != newState){
+            currentState = newState;
+            Log.info("State changed to " + newState);
+        }
     }
 
     protected void resetTimers(){
@@ -45,7 +59,8 @@ public class AIController implements UnitController{
             fallback.updateUnit();
             return;
         }
-
+        Log.info("[DroneLog] droneId=@ userId=@ state=updateUnit x=@ y=@ target=@",
+                unit.id, unit.team, unit.x, unit.y, target != null ? target.toString() : "null");
         updateVisuals();
         updateTargeting();
         updateMovement();
@@ -184,7 +199,7 @@ public class AIController implements UnitController{
             }
 
             float mountX = unit.x + Angles.trnsx(rotation, weapon.x, weapon.y),
-                mountY = unit.y + Angles.trnsy(rotation, weapon.x, weapon.y);
+                    mountY = unit.y + Angles.trnsy(rotation, weapon.x, weapon.y);
 
             if(unit.type.singleTarget){
                 mount.target = target;
@@ -230,6 +245,9 @@ public class AIController implements UnitController{
             }
 
             if(shoot){
+                Log.info("[DroneLog] droneId=@ userId=@ state=shooting x=@ y=@ target=@",
+                        unit.id, unit.team, unit.x, unit.y, mount.target != null ? mount.target.toString() : "null");
+
                 unit.aimX = mount.aimX;
                 unit.aimY = mount.aimY;
             }
@@ -327,14 +345,18 @@ public class AIController implements UnitController{
     }
 
     public void moveTo(Position target, float circleLength){
+
+
         moveTo(target, circleLength, 100f);
     }
 
     public void moveTo(Position target, float circleLength, float smooth){
+
         moveTo(target, circleLength, smooth, unit.isFlying(), null);
     }
 
     public void moveTo(Position target, float circleLength, float smooth, boolean keepDistance, @Nullable Vec2 offset){
+
         moveTo(target, circleLength, smooth, keepDistance, offset, false);
     }
 
